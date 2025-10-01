@@ -4,10 +4,15 @@ services:
     image: filegator:latest
     restart: always
     ports:
-      - "8080:8080"
+      - "888:8080"
+      - "881:8081" # backend port, see package.json and .env.local
     volumes:
       - repository:/var/www/filegator/repository
       - private:/var/www/filegator/private
+      - ./configuration.php:/var/www/filegator/configuration.php
+    extra_hosts:
+      - "ldap.example.org:host-gateway"
+      - "seaweed:host-gateway"
 
 volumes:
   repository:
