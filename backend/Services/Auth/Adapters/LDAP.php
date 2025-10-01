@@ -70,28 +70,6 @@ class LDAP implements Service, AuthInterface
             $this->ldap_attributes = isset($config['ldap_attributes']) ? $config['ldap_attributes'] : ['*'];
             $this->ldap_userFieldMapping = $config['ldap_userFieldMapping'];
             
-            // print $config['private_repos'] . '</br>';
-            // print $config['ldap_server'] . '</br>';
-            // print $config['ldap_bindDN'] . '</br>';
-            // print $config['ldap_bindPass'] . '</br>';
-            // print $config['ldap_baseDN'] . '</br>';
-            // print $config['ldap_filter'] . '</br>';
-            // print 'Bind DN: ' . $this->ldap_bindDN . '<br>';
-            // print 'Bind Pass: ' . $this->ldap_bindPass . '<br>';
-                // Выполним bind и получим пользователей
-
-
-            // try {
-            //     $users = $this->getUsers(); // вызов напрямую
-            //     echo '<pre>';
-            //     print_r($users);            // или var_dump($users);
-            //     echo '</pre>';
-            // } catch (\Exception $e) {
-            //     echo 'Ошибка получения пользователей: ' . $e->getMessage();
-            // }
-
-
-
         } else {
             @ldap_close($connect);
             throw new \Exception('could not connect to domain');
