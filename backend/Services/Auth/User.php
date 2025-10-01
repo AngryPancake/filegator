@@ -22,10 +22,12 @@ class User implements \JsonSerializable
 
     protected $name = '';
 
-    protected $available_roles = ['guest', 'user', 'admin'];
+    protected $available_roles = ['guest', 'user', 'admin', 'login', 'read', 'write', 'list'];
 
     protected $available_permissions = ['read', 'write', 'upload', 'download', 'batchdownload', 'zip', 'chmod'];
 
+    protected $groups = [];
+    
     public function __construct()
     {
     }

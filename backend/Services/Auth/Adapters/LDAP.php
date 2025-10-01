@@ -35,6 +35,9 @@ class LDAP implements Service, AuthInterface
     protected $ldap_attributes;
     protected $ldap_userFieldMapping;
     protected $logger;
+    protected $login_group;
+
+    // print "login group: $login_group";
 
     public function __construct(Session $session, LoggerInterface $logger)
     {
@@ -60,8 +63,13 @@ class LDAP implements Service, AuthInterface
             $this->ldap_bindPass = $config['ldap_bindPass'];
             $this->ldap_baseDN =   $config['ldap_baseDN'];
             $this->ldap_filter =   $config['ldap_filter'];
+
+            $this->login_group = $config['login_group'];
+            // print_r($this->login_group[0]);
+
             $this->ldap_attributes = isset($config['ldap_attributes']) ? $config['ldap_attributes'] : ['*'];
             $this->ldap_userFieldMapping = $config['ldap_userFieldMapping'];
+            
             // print $config['private_repos'] . '</br>';
             // print $config['ldap_server'] . '</br>';
             // print $config['ldap_bindDN'] . '</br>';
@@ -207,7 +215,7 @@ class LDAP implements Service, AuthInterface
         return $users;
     }
 
-    protected function getGroupsForUser($username)
+    public function getGroups($username)
     {
         // Соединение с LDAP сервером
         $ldapConn = @ldap_connect($this->ldap_server);
@@ -305,26 +313,44 @@ class LDAP implements Service, AuthInterface
                 $user = [];
                 $user['username'] = $ldapResults[$item][$this->ldap_userFieldMapping['username']][0];
                 $user['name'] = $ldapResults[$item][$this->ldap_userFieldMapping['name']][0];
-                $user['role'] = 'user';
+                $user['role'] = 'guest';
                 $user['homedir'] = '/';
                 $user['permissions'] = $this->ldap_userFieldMapping['default_permissions'];
                 $user['userDN'] = $ldapResults[$item][$this->ldap_userFieldMapping['userDN']];
-                $user['groups'] = $this->getGroupsForUser($user['username']); // Теперь получаем группы
+                $user['groups'] = $this->getGroups($user['username']); // Теперь получаем группы
+                // $login_group= $this->$login_group;
 
                 if (!empty($this->ldap_userFieldMapping['username_AddDomain'])) {
                     if (strpos($user['username'], $this->ldap_userFieldMapping['username_AddDomain']) === false)
                         $user['username'] .= $this->ldap_userFieldMapping['username_AddDomain'];
                 }
 
-                if (is_array($this->ldap_userFieldMapping['admin_usernames'])) {
-                    if (in_array($user['username'], $this->ldap_userFieldMapping['admin_usernames']))
-                        $user['role'] = 'admin';
+                // if (is_array($this->ldap_userFieldMapping['admin_usernames'])) {
+                //     if (in_array($user['username'], $this->ldap_userFieldMapping['admin_usernames']))
+                //         $user['role'] = 'admin';
+                // }
+                // echo ">>> login_group check #1:\n";
+                // print_r($this->login_group);
+                $this->logger->log('Login group: ' . print_r($this->login_group, true));
+
+                // if (is_array($this->login_group)) {
+                //     if (in_array($this->login_group, $user['groups']))
+                //         $user['role'] = 'user';
+                // }
+
+                if (is_array($this->login_group) && is_array($user['groups'])) {
+                    foreach ($user['groups'] as $group) {
+                        if (in_array($group, $this->login_group)) {
+                            $user['role'] = 'user';
+                            break; // останавливаем цикл после нахождения первой группы
+                        }
+                    }
                 }
 
-                // private repositories for each user?
-                if ($this->private_repos) {
-                    $user['homedir'] = '/' . $user['username'];
-                }
+                // // private repositories for each user?
+                // if ($this->private_repos) {
+                //     $user['homedir'] = '/' . $user['username'];
+                // }
 
                 // ...but not for admins
                 if ($user['role'] == 'admin') {
