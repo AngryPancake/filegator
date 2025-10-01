@@ -55,13 +55,35 @@ class LDAP implements Service, AuthInterface
             @ldap_set_option($connect, LDAP_OPT_REFERRALS, 0);
 
             $this->private_repos = $config['private_repos'];
-            $this->ldap_server = $config['ldap_server'];
-            $this->ldap_bindDN = $config['ldap_bindDN'];
+            $this->ldap_server =   $config['ldap_server'];
+            $this->ldap_bindDN =   $config['ldap_bindDN'];
             $this->ldap_bindPass = $config['ldap_bindPass'];
-            $this->ldap_baseDN = $config['ldap_baseDN'];
-            $this->ldap_filter = $config['ldap_filter'];
+            $this->ldap_baseDN =   $config['ldap_baseDN'];
+            $this->ldap_filter =   $config['ldap_filter'];
             $this->ldap_attributes = isset($config['ldap_attributes']) ? $config['ldap_attributes'] : ['*'];
             $this->ldap_userFieldMapping = $config['ldap_userFieldMapping'];
+            // print $config['private_repos'] . '</br>';
+            // print $config['ldap_server'] . '</br>';
+            // print $config['ldap_bindDN'] . '</br>';
+            // print $config['ldap_bindPass'] . '</br>';
+            // print $config['ldap_baseDN'] . '</br>';
+            // print $config['ldap_filter'] . '</br>';
+            // print 'Bind DN: ' . $this->ldap_bindDN . '<br>';
+            // print 'Bind Pass: ' . $this->ldap_bindPass . '<br>';
+                // Выполним bind и получим пользователей
+
+
+            // try {
+            //     $users = $this->getUsers(); // вызов напрямую
+            //     echo '<pre>';
+            //     print_r($users);            // или var_dump($users);
+            //     echo '</pre>';
+            // } catch (\Exception $e) {
+            //     echo 'Ошибка получения пользователей: ' . $e->getMessage();
+            // }
+
+
+
         } else {
             @ldap_close($connect);
             throw new \Exception('could not connect to domain');
@@ -83,6 +105,8 @@ class LDAP implements Service, AuthInterface
         if (!isset($username) || empty($username))
             return false;
 
+        
+
         // remove (optional) domains from the username
         if (!empty($this->ldap_userFieldMapping['username_RemoveDomains']) && is_array($this->ldap_userFieldMapping['username_RemoveDomains'])) {
             $username = str_replace($this->ldap_userFieldMapping['username_RemoveDomains'], '', $username);
@@ -96,8 +120,9 @@ class LDAP implements Service, AuthInterface
                 $username .= $this->ldap_userFieldMapping['username_AddDomain'];
             }
         }
-
         foreach ($all_users as &$u) {
+            // $password="user1";
+            
             if (strtolower($u['username']) == strtolower($username) && $this->verifyPassword($u['userDN'], $password)) {
                 $user = $this->mapToUserObject($u);
                 $this->store($user);
@@ -166,10 +191,55 @@ class LDAP implements Service, AuthInterface
         $users = new UsersCollection();
 
         foreach ($this->getUsers() as $user) {
+            try {
+                echo '<pre>';
+                print_r($user);            // или var_dump($users);
+                echo '</pre>';
+            } catch (\Exception $e) {
+                echo 'Ошибка получения пользователей: ' . $e->getMessage();
+            }
             $users->addUser($this->mapToUserObject($user));
         }
 
+        // print "users: $users";
+        // print $this->$ldap_userFieldMapping;
+
         return $users;
+    }
+
+    protected function getGroupsForUser($username)
+    {
+        // Соединение с LDAP сервером
+        $ldapConn = @ldap_connect($this->ldap_server);
+        if (!$ldapConn)
+            throw new \Exception('Cannot Connect to LDAP server');
+        @ldap_set_option($ldapConn, LDAP_OPT_PROTOCOL_VERSION, 3);
+        @ldap_set_option($ldapConn, LDAP_OPT_REFERRALS, 0);
+    
+        // Привязка с учетными данными
+        $ldapBind = @ldap_bind($ldapConn, $this->ldap_bindDN, $this->ldap_bindPass);
+        if (!$ldapBind)
+            throw new \Exception('Cannot Bind to LDAP server: Wrong credentials?');
+    
+        // Поиск всех групп, где в атрибуте memberUid указан пользователь
+        $filter = '(&(objectClass=posixGroup)(memberUid=' . $username . '))'; // Фильтр для поиска групп по атрибуту memberUid
+        $ldapSearch = @ldap_search($ldapConn, $this->ldap_baseDN, $filter, ['cn']);
+    
+        if (!$ldapSearch) {
+            @ldap_close($ldapConn);
+            throw new \Exception('Cannot search LDAP for groups: Wrong filter?');
+        }
+    
+        $ldapResults = @ldap_get_entries($ldapConn, $ldapSearch);
+        @ldap_close($ldapConn);
+    
+        $groups = [];
+        for ($i = 0; $i < $ldapResults['count']; $i++) {
+            // Собираем имена групп
+            $groups[] = $ldapResults[$i]['cn'][0];
+        }
+    
+        return $groups;
     }
 
     protected function mapToUserObject(array $user): User
@@ -180,6 +250,7 @@ class LDAP implements Service, AuthInterface
         $new->setRole($user['role']);
         $new->setHomedir($user['homedir']);
         $new->setPermissions($user['permissions'], true);
+        $new->setGroups($user['groups']); // Добавляем группы
         return $new;
     }
 
@@ -191,7 +262,12 @@ class LDAP implements Service, AuthInterface
         @ldap_set_option($ldapConn, LDAP_OPT_PROTOCOL_VERSION, 3);
         @ldap_set_option($ldapConn, LDAP_OPT_REFERRALS, 0);
 
+        // log($ldapBind);
+        // $this->logger->log("jilfj j jfj j jfj j j jfj jfj jf");
+        // print "ldap_bindDN: $this<-$ldap_bindDN";
+
         $ldapBind = @ldap_bind($ldapConn, $this->ldap_bindDN, $this->ldap_bindPass);
+        
         if (!$ldapBind)
             throw new \Exception('Cannot Bind to LDAP server: Wrong credentials?');
 
@@ -233,6 +309,7 @@ class LDAP implements Service, AuthInterface
                 $user['homedir'] = '/';
                 $user['permissions'] = $this->ldap_userFieldMapping['default_permissions'];
                 $user['userDN'] = $ldapResults[$item][$this->ldap_userFieldMapping['userDN']];
+                $user['groups'] = $this->getGroupsForUser($user['username']); // Теперь получаем группы
 
                 if (!empty($this->ldap_userFieldMapping['username_AddDomain'])) {
                     if (strpos($user['username'], $this->ldap_userFieldMapping['username_AddDomain']) === false)
@@ -270,6 +347,7 @@ class LDAP implements Service, AuthInterface
         if (!extension_loaded('ldap'))
             return false;
         $connect = @ldap_connect($this->ldap_server);
+        // print "connect: $connect";
         if ($connect) {
             ldap_set_option($connect, LDAP_OPT_PROTOCOL_VERSION, 3);
             ldap_set_option($connect, LDAP_OPT_REFERRALS, 0);

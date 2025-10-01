@@ -133,7 +133,19 @@ class User implements \JsonSerializable
             'homedir' => $this->getHomeDir(),
             'username' => $this->getUsername(),
             'name' => $this->getName(),
+            'groups' => $this->getGroups(),
         ];
+    }
+
+    // Сеттеры и геттеры для групп
+    public function setGroups(array $groups)
+    {
+        $this->groups = $groups;
+    }
+
+    public function getGroups(): array
+    {
+        return $this->groups;
     }
 
     protected function checkValidRole($role)

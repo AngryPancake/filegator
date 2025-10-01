@@ -232,7 +232,7 @@ return [
             'GET', '/listusers', '\Filegator\Controllers\AdminController@listUsers',
         ],
         'roles' => [
-            'admin',
+            'admin', 'user', 'guest',
         ],
         'permissions' => [
         ],
