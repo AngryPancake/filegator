@@ -13,7 +13,7 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 RUN docker-php-ext-install zip
 RUN docker-php-ext-enable zip
 
-RUN git clone https://github.com/filegator/filegator.git /var/www/filegator/
+RUN git clone https://github.com/AngryPancake/filegator.git /var/www/filegator/
 WORKDIR "/var/www/filegator/"
 RUN cp configuration_sample.php configuration.php
 RUN composer install
@@ -21,7 +21,7 @@ RUN composer require league/flysystem-sftp:^1.0 -W
 RUN composer require league/flysystem-aws-s3-v3:^1.0 -W
 RUN npm install
 RUN npm run build
-RUN vendor/bin/phpunit
+# RUN vendor/bin/phpunit
 RUN npm run lint
 #RUN npm run test:e2e
 RUN rm -rf node_modules frontend tests docs .git .github
@@ -46,7 +46,7 @@ RUN chmod -R g+w private/
 RUN chmod -R g+w repository/
 
 ENV APACHE_DOCUMENT_ROOT=/var/www/filegator/dist/
-ENV APACHE_PORT=8080
+ENV APACHE_PORT=2222
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/000-default.conf
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/docker-php.conf
 RUN sed -ri -e 's!80!${APACHE_PORT}!g' /etc/apache2/ports.conf

@@ -100,8 +100,8 @@ Check out [the official docker image](https://hub.docker.com/r/filegator/filegat
 
 Docker quick start:
 ```
-docker run -p 8080:8080 -d filegator/filegator
-visit: http://127.0.0.1:8080 login as admin/admin123
+docker run -p 2222:2222 -d filegator/filegator
+visit: http://127.0.0.1:2222 login as admin/admin123
 ```
 
 ## Download & Installation
@@ -115,7 +115,7 @@ git clone https://github.com/filegator/filegator.git
 cd filegator
 docker compose -f docker-compose-dev.yml up
 ```
-Once everything is ready visit: [http://localhost:8080](http://localhost:8080) and login as admin/admin123, Ctrl+c to stop.
+Once everything is ready visit: [http://localhost:2222](http://localhost:2222) and login as admin/admin123, Ctrl+c to stop.
 
 See `docker-compose-dev.yml` for more informations about configurations and dependencies.
 
@@ -134,7 +134,7 @@ npm install
 npm run build
 npm run serve
 ```
-Once everything is ready visit: [http://localhost:8080](http://localhost:8080) and login as admin/admin123
+Once everything is ready visit: [http://localhost:2222](http://localhost:2222) and login as admin/admin123
 
 
 ## Run tests & static analysis

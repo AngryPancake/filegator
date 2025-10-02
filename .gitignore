@@ -5,6 +5,7 @@
 /dist/main.html
 
 /configuration.php
+.vendor
 
 /tests/backend/coverage
 /tests/backend/tmp/repository/*

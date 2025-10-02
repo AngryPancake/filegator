@@ -4,8 +4,8 @@ services:
     image: filegator:latest
     restart: always
     ports:
-      - "888:8080"
-      - "881:8081" # backend port, see package.json and .env.local
+      - "2222:2222"
+      - "2223:2223" # backend port, see package.json and .env.local
     volumes:
       - repository:/var/www/filegator/repository
       - private:/var/www/filegator/private
@@ -13,6 +13,7 @@ services:
     extra_hosts:
       - "ldap.example.org:host-gateway"
       - "seaweed:host-gateway"
+      - "bucket-1.seaweed:host-gateway"
 
 volumes:
   repository:

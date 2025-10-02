@@ -133,6 +133,7 @@ const funcs = {
     },
     handleError(error) {
       this.checkUser()
+      console.log('HandleError:', error)
 
       if (typeof error == 'string') {
         this.$toast.open({

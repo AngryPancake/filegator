@@ -5,16 +5,18 @@ services:
       context: .
       dockerfile: Dockerfile.dev
     ports:
-      - "888:8080" # frontend port, see package.json
-      - "881:8081" # backend port, see package.json and .env.local
+      - "2222:2222" # frontend port, see package.json
+      - "2223:2223" # backend port, see package.json and .env.local
     extra_hosts:
       - "ldap.example.org:host-gateway"
       - "seaweed:host-gateway"
+      - "bucket-1.seaweed:host-gateway"
     volumes:
       # mount code:
       - ./frontend:/var/www/filegator/frontend
       - ./backend:/var/www/filegator/backend
       - ./repository:/var/www/filegator/repository
+      - .vendor:/var/www/filegator/vendor/
       # mount custom configuration (create configuration.php file first):
       - ./configuration.php:/var/www/filegator/configuration.php
       # mount php dependencies locally:
