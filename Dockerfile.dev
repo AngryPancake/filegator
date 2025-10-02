@@ -13,6 +13,7 @@ WORKDIR "/var/www/filegator/"
 
 COPY . .
 RUN composer install
+RUN composer require league/flysystem-sftp:^1.0 -W
 RUN composer require league/flysystem-aws-s3-v3:^1.0 -W
 RUN npm i
 RUN cp -n configuration_sample.php configuration.php

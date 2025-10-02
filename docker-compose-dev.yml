@@ -16,7 +16,7 @@ services:
       - ./frontend:/var/www/filegator/frontend
       - ./backend:/var/www/filegator/backend
       - ./repository:/var/www/filegator/repository
-      - .vendor:/var/www/filegator/vendor/
+      # - .vendor:/var/www/filegator/vendor/
       # mount custom configuration (create configuration.php file first):
       - ./configuration.php:/var/www/filegator/configuration.php
       # mount php dependencies locally:
