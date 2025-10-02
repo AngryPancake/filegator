@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import Browser from './views/Browser.vue'
 import Users from './views/Users.vue'
+import Bucket from './views/Bucket.vue'
 import Login from './views/Login.vue'
 import store from './store'
 
@@ -29,6 +30,13 @@ export default new Router({
           next()
         }
       }
+    },
+
+    // Этот маршрут отработает, если ни один выше не подошёл
+    {
+      path: '*',
+      name: 'bucket',
+      component: Bucket,
     }
   ]
 })
