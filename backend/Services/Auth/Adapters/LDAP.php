@@ -107,9 +107,25 @@ class LDAP implements Service, AuthInterface
             }
         }
         foreach ($all_users as &$u) {
-            // $password="user1";
-            
             if (strtolower($u['username']) == strtolower($username) && $this->verifyPassword($u['userDN'], $password)) {
+                // Проверка, что пользователь состоит в login_group
+                $userGroups = $u['groups'] ?? [];
+        
+                $allowed = false;
+                if (is_array($this->login_group) && is_array($userGroups)) {
+                    foreach ($userGroups as $group) {
+                        if (in_array($group, $this->login_group)) {
+                            $allowed = true;
+                            break;
+                        }
+                    }
+                }
+        
+                if (!$allowed) {
+                    $this->logger->log('Authentication failed: user "' . $username . '" is not in allowed login groups.', Logger::WARNING);
+                    return false;
+                }
+        
                 $user = $this->mapToUserObject($u);
                 $this->store($user);
                 return true;
@@ -187,9 +203,6 @@ class LDAP implements Service, AuthInterface
             $users->addUser($this->mapToUserObject($user));
         }
 
-        // print "users: $users";
-        // print $this->$ldap_userFieldMapping;
-
         return $users;
     }
 
@@ -247,10 +260,6 @@ class LDAP implements Service, AuthInterface
             throw new \Exception('Cannot Connect to LDAP server');
         @ldap_set_option($ldapConn, LDAP_OPT_PROTOCOL_VERSION, 3);
         @ldap_set_option($ldapConn, LDAP_OPT_REFERRALS, 0);
-
-        // log($ldapBind);
-        // $this->logger->log("jilfj j jfj j jfj j j jfj jfj jf");
-        // print "ldap_bindDN: $this<-$ldap_bindDN";
 
         $ldapBind = @ldap_bind($ldapConn, $this->ldap_bindDN, $this->ldap_bindPass);
         
@@ -321,7 +330,10 @@ class LDAP implements Service, AuthInterface
                         if (in_array($group, $this->login_group)) {
                             $user['role'] = 'user';
                             break; // останавливаем цикл после нахождения первой группы
-                        }
+                        } 
+                        // else {
+                        //     print_r("not login group");
+                        // }
                     }
                 }
 

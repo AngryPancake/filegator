@@ -57,7 +57,7 @@ class AuthController
 
         $tmpfs->write($lockfile, 'x', true);
 
-        return $response->json('Login failed, please try again', 422);
+        return $response->json('Login failed, please try again ', 422);
     }
 
     public function logout(Response $response, AuthInterface $auth)

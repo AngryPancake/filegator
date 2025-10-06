@@ -8,9 +8,10 @@ services:
       - "2222:2222" # frontend port, see package.json
       - "2223:2223" # backend port, see package.json and .env.local
     extra_hosts:
-      - "ldap.example.org:host-gateway"
+      - "ldap.example.org:10.151.32.72"
       - "seaweed:host-gateway"
       - "bucket-1.seaweed:host-gateway"
+      - "nsmirnov.vdi.loc:10.151.32.72"
     volumes:
       # mount code:
       - ./frontend:/var/www/filegator/frontend
